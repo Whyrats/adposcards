@@ -65,3 +65,7 @@ async def handle_file(event):
                 await event.respond('Произошла ошибка при обработке файла.')
         else:
             await event.respond('Пожалуйста, загрузите .xlsx файл.')
+
+if __name__ == '__main__':
+    print("Starting bot...")
+    client.run_until_disconnected()
