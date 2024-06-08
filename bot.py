@@ -1,15 +1,20 @@
 from telethon import TelegramClient, events, Button
 import os
+import logging
 from utils.file_processor import process_file
 from database import init_db, set_export_format, get_export_format
 from xlsx_exporter import create_xlsx_file
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Загружаем переменные окружения
 api_id = os.getenv('YOUR_API_ID')
 api_hash = os.getenv('YOUR_API_HASH')
 bot_token = os.getenv('BOT_TOKEN')
 
-print(f"API_ID: {api_id}, API_HASH: {api_hash}, BOT_TOKEN: {bot_token}")
+logger.info("API_ID: %s, API_HASH: %s, BOT_TOKEN: %s", api_id, api_hash, bot_token)
 
 # Создаем клиента Telegram
 client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
@@ -19,13 +24,13 @@ init_db()
 
 @client.on(events.NewMessage(pattern='/start'))
 async def start(event):
-    print("/start command received")
+    logger.info("/start command received")
     await event.respond('Привет! Пожалуйста, загрузите .xlsx файл с данными 📄 или используйте /settings для настройки формата экспорта.')
     raise events.StopPropagation
 
 @client.on(events.NewMessage(pattern='/settings'))
 async def settings(event):
-    print("/settings command received")
+    logger.info("/settings command received")
     buttons = [
         [Button.inline("Экспорт в .txt 📄", b'txt')],
         [Button.inline("Экспорт в .xlsx 📊", b'xlsx')]
@@ -37,7 +42,7 @@ async def settings(event):
 async def callback(event):
     user_id = event.sender_id
     data = event.data.decode('utf-8')
-    print(f"Callback received: {data}")
+    logger.info("Callback received: %s", data)
 
     if data in ['txt', 'xlsx']:
         set_export_format(user_id, data)
@@ -46,10 +51,10 @@ async def callback(event):
 
 @client.on(events.NewMessage)
 async def handle_file(event):
-    print("New message received")
+    logger.info("New message received")
     if event.message.file:
         file_path = await event.message.download_media()
-        print(f"File downloaded to: {file_path}")
+        logger.info("File downloaded to: %s", file_path)
         if file_path.endswith('.xlsx'):
             try:
                 user_id = event.sender_id
@@ -75,11 +80,11 @@ async def handle_file(event):
                     message_text = '\n'.join([f'{i+1}. `{card}`' for i, card in enumerate(processed_data)])
                     await event.respond(message_text, parse_mode='markdown')
             except Exception as e:
-                print(f"Error processing file: {e}")
+                logger.error("Error processing file: %s", e)
                 await event.respond(f'Произошла ошибка при обработке файла: {e}')
         else:
             await event.respond('Пожалуйста, загрузите .xlsx файл.')
 
 if __name__ == '__main__':
-    print("Starting bot...")
+    logger.info("Starting bot...")
     client.run_until_disconnected()
