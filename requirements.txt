@@ -1,3 +1,2 @@
-telethon
-pandas
-openpyxl
+telethon==1.23.0
+openpyxl==3.0.9
