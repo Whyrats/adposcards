@@ -25,8 +25,14 @@ def process_file(file_path):
         elif column in russian_headers.values():
             for key, value in russian_headers.items():
                 if value == column:
-                    headers[column] = english_headers[key]
+                    headers[english_headers[key]] = column
     
+    # Проверка наличия всех необходимых заголовков
+    required_headers = ["Card Number", "Expiration Date", "CVV"]
+    for header in required_headers:
+        if header not in headers:
+            raise ValueError(f"Отсутствует обязательный столбец: {header}")
+
     # Обрабатываем строки в таблице
     for index, row in df.iterrows():
         card_number = str(row[headers["Card Number"]])
