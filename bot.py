@@ -4,14 +4,17 @@ from utils.file_processor import process_file
 from database import init_db, set_export_format, get_export_format
 from xlsx_exporter import create_xlsx_file
 
+# Загружаем переменные окружения
 api_id = os.getenv('YOUR_API_ID')
 api_hash = os.getenv('YOUR_API_HASH')
 bot_token = os.getenv('BOT_TOKEN')
 
 print(f"API_ID: {api_id}, API_HASH: {api_hash}, BOT_TOKEN: {bot_token}")
 
+# Создаем клиента Telegram
 client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
 
+# Инициализируем базу данных
 init_db()
 
 @client.on(events.NewMessage(pattern='/start'))
@@ -46,6 +49,7 @@ async def handle_file(event):
     print("New message received")
     if event.message.file:
         file_path = await event.message.download_media()
+        print(f"File downloaded to: {file_path}")
         if file_path.endswith('.xlsx'):
             try:
                 user_id = event.sender_id
@@ -56,13 +60,17 @@ async def handle_file(event):
                     with open(txt_file_path, 'w') as txt_file:
                         txt_file.write('\n'.join(processed_data))
                     await event.respond('Файл успешно обработан и сохранен в формате .txt 📄.')
+                    # Отправка файла обратно пользователю
+                    await client.send_file(event.chat_id, txt_file_path)
                 elif export_format == 'xlsx':
                     xlsx_file_path = f"{file_path}.processed.xlsx"
                     create_xlsx_file(processed_data, xlsx_file_path)
                     await event.respond('Файл успешно обработан и сохранен в формате .xlsx 📊.')
+                    # Отправка файла обратно пользователю
+                    await client.send_file(event.chat_id, xlsx_file_path)
             except Exception as e:
                 print(f"Error processing file: {e}")
-                await event.respond('Произошла ошибка при обработке файла.')
+                await event.respond(f'Произошла ошибка при обработке файла: {e}')
         else:
             await event.respond('Пожалуйста, загрузите .xlsx файл.')
 
