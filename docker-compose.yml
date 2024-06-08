@@ -1,12 +1,10 @@
-version: '3.3'
+version: '3.8'
 
 services:
   bot:
     build: .
     container_name: telegram_bot
-    env_file:
-      - .env
+    env_file: .env
     volumes:
       - .:/app
-    working_dir: /app
-    command: python3 bot.py
+    restart: always

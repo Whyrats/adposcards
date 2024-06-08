@@ -50,38 +50,18 @@ async def handle_file(event):
             try:
                 user_id = event.sender_id
                 export_format = get_export_format(user_id)
-                results = process_file(file_path)
-                print(f"Export format: {export_format}")
-
+                processed_data = process_file(file_path)
                 if export_format == 'txt':
-                    response = "\n".join([f"{index + 1}. `{result}` 📝" for index, result in enumerate(results)])
-                    txt_file_path = 'AdposCards.txt'
-                    with open(txt_file_path, 'w') as f:
-                        for result in results:
-                            f.write(f"{result}\n")
-
-                    await event.respond(response, parse_mode='markdown')
-                    await event.respond('Вот ваш файл с результатами 📄:')
-                    await event.respond(file=txt_file_path)
-                    os.remove(txt_file_path)
-
+                    txt_file_path = f"{file_path}.txt"
+                    with open(txt_file_path, 'w') as txt_file:
+                        txt_file.write('\n'.join(processed_data))
+                    await event.respond('Файл успешно обработан и сохранен в формате .txt 📄.')
                 elif export_format == 'xlsx':
-                    xlsx_file_path = 'AdposCards.xlsx'
-                    create_xlsx_file(results, xlsx_file_path)
-                    await event.respond('Вот ваш файл с результатами 📊:')
-                    await event.respond(file=xlsx_file_path)
-                    os.remove(xlsx_file_path)
-
-                os.remove(file_path)
+                    xlsx_file_path = f"{file_path}.processed.xlsx"
+                    create_xlsx_file(processed_data, xlsx_file_path)
+                    await event.respond('Файл успешно обработан и сохранен в формате .xlsx 📊.')
             except Exception as e:
-                await event.respond(f'Произошла ошибка при обработке файла: {str(e)} ❌')
+                print(f"Error processing file: {e}")
+                await event.respond('Произошла ошибка при обработке файла.')
         else:
-            await event.respond('Пожалуйста, загрузите файл в формате .xlsx ❗.')
-    else:
-        await event.respond('Пожалуйста, загрузите .xlsx файл с данными 📄.')
-
-def main():
-    client.run_until_disconnected()
-
-if __name__ == '__main__':
-    main()
+            await event.respond('Пожалуйста, загрузите .xlsx файл.')
