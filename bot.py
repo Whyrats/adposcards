@@ -56,18 +56,24 @@ async def handle_file(event):
                 export_format = get_export_format(user_id)
                 processed_data = process_file(file_path)
                 if export_format == 'txt':
-                    txt_file_path = f"{file_path}.txt"
+                    txt_file_path = "AdposCards.txt"
                     with open(txt_file_path, 'w') as txt_file:
                         txt_file.write('\n'.join(processed_data))
                     await event.respond('Файл успешно обработан и сохранен в формате .txt 📄.')
                     # Отправка файла обратно пользователю
                     await client.send_file(event.chat_id, txt_file_path)
+                    # Отправка обработанных данных в сообщении
+                    message_text = '\n'.join([f'{i+1}. `{card}`' for i, card in enumerate(processed_data)])
+                    await event.respond(message_text, parse_mode='markdown')
                 elif export_format == 'xlsx':
-                    xlsx_file_path = f"{file_path}.processed.xlsx"
+                    xlsx_file_path = "AdposCards.processed.xlsx"
                     create_xlsx_file(processed_data, xlsx_file_path)
                     await event.respond('Файл успешно обработан и сохранен в формате .xlsx 📊.')
                     # Отправка файла обратно пользователю
                     await client.send_file(event.chat_id, xlsx_file_path)
+                    # Отправка обработанных данных в сообщении
+                    message_text = '\n'.join([f'{i+1}. `{card}`' for i, card in enumerate(processed_data)])
+                    await event.respond(message_text, parse_mode='markdown')
             except Exception as e:
                 print(f"Error processing file: {e}")
                 await event.respond(f'Произошла ошибка при обработке файла: {e}')
