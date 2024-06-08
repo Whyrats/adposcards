@@ -20,13 +20,13 @@ async def handle_file(event):
         if file_path.endswith('.xlsx'):
             try:
                 results = process_file(file_path)
-                response = "\n".join([f"🔹 `{result}`" for result in results])
+                response = "\n".join([f"{index + 1}. `{result}`" for index, result in enumerate(results)])
                 
                 # Создание .txt файла
-                txt_file_path = 'results.txt'
+                txt_file_path = 'AdposCards.txt'
                 with open(txt_file_path, 'w') as f:
-                    for result in results:
-                        f.write(f"{result}\n")
+                    for index, result in enumerate(results):
+                        f.write(f"{index + 1}. {result}\n")
                 
                 await event.respond(response, parse_mode='markdown')
                 await event.respond('Вот ваш файл с результатами 📄:')
